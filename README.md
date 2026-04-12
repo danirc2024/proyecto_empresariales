@@ -1,18 +1,48 @@
-# Sistema de Seguimiento de Pedidos
+# Sistema de Gestión Empresarial
 
 ## Descripción
-Aplicación simple para gestionar pedidos de una empresa de comercio electrónico. Permite registrar pedidos, asignar estados y consultar el estado.
+Aplicación web para gestionar pedidos y productos de una empresa con distribución geográfica. Combina un frontend en Streamlit con una API REST en FastAPI, permitiendo crear, actualizar, consultar y eliminar pedidos con información de cliente, ubicación de entrega y estado.
 
-## Funcionalidades
-- ✅ **Registrar pedidos**: Se captura información del cliente, producto, cantidad y precio
-- ✅ **Asignar estados**: Los pedidos pueden tener tres estados (pendiente → en proceso → entregado)
-- ✅ **Consultar estado**: Se pueden ver todos los pedidos con su estado actual
-- ✅ **Filtrar por estado**: Consulta pedidos por su estado específico
+## Funcionalidades Actuales
+- ✅ **CRUD Completo**: Crear, leer, actualizar y eliminar productos/pedidos
+- ✅ **Gestión de Cliente**: Captura nombre del cliente para cada pedido
+- ✅ **Gestión Geográfica**: Registro de región y comuna de entrega
+- ✅ **Dirección de Entrega**: Almacenamiento de dirección completa
+- ✅ **Control de Estados**: Estados para seguimiento del pedido
+- ✅ **API REST**: Backend en FastAPI con endpoints documentados
+- ✅ **Base de Datos**: Persistencia con base de datos relacional (SQLAlchemy)
 
-## Requisitos
-- Python 3.7+
-- Streamlit
-- Pandas
+## Tecnología
+- **Frontend**: Streamlit (interfaz web interactiva)
+- **Backend**: FastAPI (API REST)
+- **Base de Datos**: SQLAlchemy ORM
+- **Python 3.7+**
+
+## Estructura del Proyecto
+```
+proyecto_empresariales/
+├── streamlit_app.py          # Interfaz principal
+├── app/
+│   ├── main.py              # Punto de entrada FastAPI
+│   ├── api/
+│   │   ├── api.py           # Router principal
+│   │   └── endpoints/
+│   │       └── products.py   # Endpoints CRUD de productos
+│   ├── models/
+│   │   └── product.py        # Modelo de base de datos
+│   ├── schemas/
+│   │   └── product.py        # Esquemas de validación
+│   ├── services/
+│   │   └── product_service.py # Lógica de negocio
+│   ├── repositories/
+│   │   └── product_repository.py # Acceso a datos
+│   ├── db/
+│   │   └── session.py        # Configuración de BD
+│   ├── core/
+│   │   └── config.py         # Configuración
+│   └── utils/
+│       └── locations.py      # Datos de regiones y comunas
+```
 
 ## Instalación
 
@@ -20,52 +50,59 @@ Aplicación simple para gestionar pedidos de una empresa de comercio electrónic
 ```bash
 pip install -r requirements.txt
 ```
-##o le mandas el pip install streamlit nmas
 
-2. Ejecutar la aplicación:
+2. Ejecutar la aplicación (se inicia ambas partes):
 ```bash
-streamlit run app.py
+bash run.sh
+```
+O manualmente:
+```bash
+# Terminal 1 - Backend (FastAPI)
+uvicorn app.main:app --reload --port 8001
+
+# Terminal 2 - Frontend (Streamlit)
+streamlit run streamlit_app.py
 ```
 
-3. Abrir navegador en: `http://localhost:8501`
+3. Acceder a:
+   - **Frontend**: `http://localhost:8501`
+   - **API**: `http://localhost:8001`
+   - **Docs API**: `http://localhost:8001/docs`
 
 ## Uso
 
-### Pestaña 1: Registrar Pedido
-- Completar datos del cliente, producto, cantidad y precio
-- Hacer clic en "Registrar Pedido"
-- El pedido se crea con estado "pendiente" por defecto
+### Pestaña: CRUD Pedidos
+- **Crear Pedido**: Ingresa datos del cliente, producto, precio, región, comuna y dirección
+- **Ver Pedidos**: Tabla con todos los pedidos registrados
+- **Actualizar Pedido**: Edita información de un pedido existente
+- **Eliminar Pedido**: Elimina pedidos del sistema
+- **Seguimiento**: Consulta el estado actual de cada pedido
 
-### Pestaña 2: Consultar Pedidos
-- Ver tabla con todos los pedidos
-- Filtrar por estado si es necesario
-- Se muestra: ID, Cliente, Producto, Cantidad, Precio, Estado y Fecha
+### Pestaña: Mapa (Próximamente)
+Visualización geográfica de entregas
 
-### Pestaña 3: Cambiar Estado
-- Seleccionar un pedido
-- Elegir nuevo estado
-- Confirmar cambio
+### Pestaña: Configuración
+Opciones del sistema
 
-## Almacenamiento
-Los datos se guardan en archivo JSON (`pedidos.json`) de forma persistente.
+## Campos de un Producto/Pedido
+- **ID**: Identificador único
+- **Nombre**: Nombre del producto
+- **Descripción**: Detalles adicionales
+- **Precio**: Precio unitario
+- **Cliente**: Nombre del cliente
+- **Región**: Región de entrega
+- **Comuna**: Comuna específica
+- **Dirección de Entrega**: Domicilio completo
+- **Estado**: Estado del pedido (Pendiente, En Proceso, Entregado)
 
-## Estructura de un Pedido
-```json
-{
-  "id": 1,
-  "cliente": "Juan García",
-  "producto": "Laptop Dell",
-  "cantidad": 2,
-  "precio_total": 4000.00,
-  "estado": "pendiente",
-  "fecha": "10/04/2026 14:30"
-}
+## Endpoints de API
+```
+POST   /api/v1/products              - Crear producto
+GET    /api/v1/products              - Listar productos
+GET    /api/v1/products/{id}         - Obtener producto
+PUT    /api/v1/products/{id}         - Actualizar producto
+DELETE /api/v1/products/{id}         - Eliminar producto
 ```
 
-## Estados Disponibles
-- **pendiente**: Pedido registrado, no iniciado
-- **en proceso**: Pedido en preparación/envío
-- **entregado**: Pedido completado
-
 ---
-**Proyecto simple y funcional para seguimiento de pedidos empresariales**
+**Aplicación empresarial para gestión integral de pedidos y distribución**
