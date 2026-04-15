@@ -22,7 +22,8 @@ class ProductRepository:
     def update_product(self, product_id: int, product: ProductUpdate):
         db_product = self.get_product(product_id)
         if db_product:
-            update_data = product.dict(exclude_unset=True)
+            # Obtener solo los campos que fueron realmente proporcionados (no None)
+            update_data = product.dict(exclude_unset=True, exclude_none=True)
             for key, value in update_data.items():
                 setattr(db_product, key, value)
             self.db.commit()
