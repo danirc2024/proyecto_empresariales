@@ -119,11 +119,15 @@ def geocode_address(address, comuna, region):
         pass
     return None, None
 
-# ============== PESTAÑAS PRINCIPALES ==============
-tab1, tab2, tab3 = st.tabs(["CRUD de Pedidos", "🗺️ Mapa de Entregas", "⚙️ Configuración/Estadisticas"])
+# ============== MENÚ LATERAL (SIDEBAR) ==============
+st.sidebar.title("Navegación")
+selected_menu = st.sidebar.radio(
+    "",
+    ["📝 CRUD de Pedidos", "🗺️ Mapa de Entregas", "⚙️ Configuración/Estadísticas"]
+)
 
-# ============== PESTAÑA 1: GESTIÓN INTEGRADA ==============
-with tab1:
+# ============== SECCIÓN 1: GESTIÓN INTEGRADA ==============
+if selected_menu == "📝 CRUD de Pedidos":
     st.header("Gestión de Pedidos / Productos")
     
     # Obtener la lista de productos
@@ -181,22 +185,16 @@ with tab1:
             col_btn1, col_btn2 = st.columns([3, 1])
             with col_btn1:
                 if st.button("Crear Pedido", type="primary", use_container_width=True):
-                    if not c_name:
-                        st.error(" El nombre del producto es obligatorio")
-                    elif not c_customer:
-                        st.error(" El nombre del cliente es obligatorio")
-                    elif c_price <= 0:
-                        st.error(" El precio debe ser mayor a 0")
-                    elif not c_address:
-                        st.error(" La dirección de entrega es obligatoria")
+                    if not c_name or not c_customer or c_price <= 0 or not c_address:
+                        st.error("❌ Error: Faltan campos obligatorios o el precio es inválido. Por favor, revise el formulario y vuelva a intentarlo.")
                     else:
                         resultado = create_product(c_name, c_description, c_price, c_customer, c_region, c_comuna, c_address, c_status)
                         if resultado:
-                            st.success(f"¡Pedido creado exitosamente! (ID: {resultado.get('id')})")
-                            st.balloons()
+                            st.success(f"✅ ¡Pedido creado correctamente! (ID: {resultado.get('id')})")
+                            time.sleep(1.5)
                             st.rerun()
                         else:
-                            st.error(" Error al crear el pedido")
+                            st.error("❌ Ocurrió un error al intentar guardar el pedido en la base de datos.")
     
     # ========== SECCIÓN 2: ACTUALIZAR ==========
     with operation_tabs[1]:
@@ -301,8 +299,8 @@ with tab1:
                     else:
                         st.error(" Error al eliminar el pedido")
 
-# ============== PESTAÑA 2: MAPA ==============
-with tab2:
+# ============== SECCIÓN 2: MAPA ==============
+elif selected_menu == "🗺️ Mapa de Entregas":
     st.header("Mapa de Envíos y Rutas")
     
     products_to_map = get_products()
@@ -346,8 +344,8 @@ with tab2:
     else:
         st.info("No hay pedidos registrados para mostrar en el mapa.")
 
-# ============== PESTAÑA 3: CONFIGURACIÓN ==============
-with tab3:
+# ============== SECCIÓN 3: CONFIGURACIÓN ==============
+elif selected_menu == "⚙️ Configuración/Estadísticas":
     st.header("Configuraciones del Sistema")
     
     col_config1, col_config2 = st.columns(2)
