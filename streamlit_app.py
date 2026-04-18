@@ -122,8 +122,9 @@ def geocode_address(address, comuna, region):
 # ============== MENÚ LATERAL (SIDEBAR) ==============
 st.sidebar.title("Navegación")
 selected_menu = st.sidebar.radio(
-    "",
-    ["📝 CRUD de Pedidos", "🗺️ Mapa de Entregas", "⚙️ Configuración/Estadísticas"]
+    "Menú Principal",
+    ["📝 CRUD de Pedidos", "🗺️ Mapa de Entregas", "⚙️ Configuración/Estadísticas"],
+    label_visibility="collapsed"
 )
 
 # ============== SECCIÓN 1: GESTIÓN INTEGRADA ==============
