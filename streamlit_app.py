@@ -84,8 +84,43 @@ def delete_product(product_id):
         st.error(f"Error al eliminar: {e}")
     return None
 
+import time
+
+@st.cache_data(show_spinner=False)
+def geocode_address(address, comuna, region):
+    """
+    Convierte una dirección de Chile en coordenadas (latitud, longitud).
+    Usa Nominatim (OpenStreetMap) filtrando solo por Chile para evitar confusiones.
+    """
+    if not address or address == "Sin dirección":
+        return None, None
+        
+    query = f"{address}, {comuna}, {region}, Chile"
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {
+        "q": query,
+        "format": "json",
+        "countrycodes": "cl",
+        "limit": 1
+    }
+    headers = {
+        "User-Agent": "GestorEmpresarialApp/1.0"
+    }
+    
+    try:
+        response = requests.get(url, params=params, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            if data:
+                return float(data[0]["lat"]), float(data[0]["lon"])
+        # Para evitar bloquear la API por muchas peticiones (Nominatim requiere max 1 req/sec)
+        time.sleep(1)
+    except Exception as e:
+        pass
+    return None, None
+
 # ============== PESTAÑAS PRINCIPALES ==============
-tab1, tab2, tab3 = st.tabs(["CRUD de Pedidos", "🗺️ Mapa (Próximamente)", "⚙️ Configuración/Estadisticas"])
+tab1, tab2, tab3 = st.tabs(["CRUD de Pedidos", "🗺️ Mapa de Entregas", "⚙️ Configuración/Estadisticas"])
 
 # ============== PESTAÑA 1: GESTIÓN INTEGRADA ==============
 with tab1:
@@ -101,7 +136,7 @@ with tab1:
     if products_list:
         # Mostrar datos en tabla con opciones
         df_display = pd.DataFrame(products_list)
-        st.dataframe(df_display, use_container_width=True, hide_index=True)
+        st.dataframe(df_display, width='stretch', hide_index=True)
     else:
         st.warning("📭 No hay pedidos registrados. ¡Crea el primero!")
     
@@ -269,7 +304,47 @@ with tab1:
 # ============== PESTAÑA 2: MAPA ==============
 with tab2:
     st.header("Mapa de Envíos y Rutas")
-    st.info("Este módulo permitirá visualizar geográficamente todos los pedidos por región y comuna, optimizando rutas de entrega. (En desarrollo)")
+    
+    products_to_map = get_products()
+    
+    if products_to_map:
+        with st.spinner("Geolocalizando las direcciones en Chile..."):
+            map_data = []
+            
+            for p in products_to_map:
+                address = p.get("delivery_address")
+                comuna = p.get("comuna")
+                region = p.get("region")
+                status = p.get("status")
+                name = p.get("name")
+                
+                # Ignorar si está entregado o no tiene dirección
+                if address and address != "Sin dirección" and status != "entregado":
+                    lat, lon = geocode_address(address, comuna, region)
+                    if lat and lon:
+                        map_data.append({
+                            "Producto": name,
+                            "Cliente": p.get("customer_name"),
+                            "Dirección": f"{address}, {comuna}",
+                            "Estado": status,
+                            "lat": lat,
+                            "lon": lon
+                        })
+            
+            if map_data:
+                df_map = pd.DataFrame(map_data)
+                
+                st.subheader("Ubicación de Pedidos Activos (Pendientes / En proceso)")
+                # Renderizar mapa usando la función nativa de Streamlit
+                # Usa lat y lon del dataframe
+                st.map(df_map, latitude="lat", longitude="lon", color="#ff0000", size=50)
+                
+                st.write("**Detalles Georreferenciados:**")
+                st.dataframe(df_map.drop(columns=["lat", "lon"]), width="stretch", hide_index=True)
+            else:
+                st.warning("No se encontraron coordenadas válidas en Chile para las direcciones proporcionadas de pedidos activos.")
+    else:
+        st.info("No hay pedidos registrados para mostrar en el mapa.")
 
 # ============== PESTAÑA 3: CONFIGURACIÓN ==============
 with tab3:
